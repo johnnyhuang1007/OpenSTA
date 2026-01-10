@@ -233,10 +233,10 @@ public:
                           int digits) const;
   std::string report(const Units *units,
                      Report *report) const;
-
-protected:
   float scaleFactor(const LibertyCell *cell,
 		    const Pvt *pvt) const;
+protected:
+  
   std::string reportPvtScaleFactor(const LibertyCell *cell,
                                    const Pvt *pvt,
                                    int digits) const;
