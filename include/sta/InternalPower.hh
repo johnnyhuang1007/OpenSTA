@@ -65,6 +65,10 @@ public:
   LibertyPort *relatedPort() const { return related_port_; }
   FuncExpr *when() const { return when_; }
   const char *relatedPgPin() const { return related_pg_pin_; }
+  InternalPowerModel *model(const RiseFall *rf) const
+  {
+    return models_[rf->index()];
+  }
   float power(const RiseFall *rf,
 	      const Pvt *pvt,
 	      float in_slew,
@@ -83,6 +87,7 @@ class InternalPowerModel
 public:
   explicit InternalPowerModel(TableModel *model);
   ~InternalPowerModel();
+  TableModel *tableModel() const { return model_; }
   float power(const LibertyCell *cell,
 	      const Pvt *pvt,
 	      float in_slew,

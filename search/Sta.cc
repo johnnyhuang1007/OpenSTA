@@ -5751,6 +5751,12 @@ Sta::activity(const Pin *pin)
   return power_->pinActivity(pin);
 }
 
+PwrActivity
+Sta::activityNoPreamble(const Pin *pin)
+{
+  return power_->pinActivity(pin);
+}
+
 ////////////////////////////////////////////////////////////////
 
 void

@@ -1252,6 +1252,9 @@ public:
   PowerResult power(const Instance *inst,
                     const Corner *corner);
   PwrActivity activity(const Pin *pin);
+  // Return pin activity without calling powerPreamble().
+  // Caller is responsible for preamble/warmup sequencing.
+  PwrActivity activityNoPreamble(const Pin *pin);
 
   void writeTimingModel(const char *lib_name,
                         const char *cell_name,
