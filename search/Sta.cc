@@ -5751,6 +5751,22 @@ Sta::activity(const Pin *pin)
   return power_->pinActivity(pin);
 }
 
+float
+Sta::leakageStateDuty(const Instance *inst,
+                      LeakagePower *leak)
+{
+  powerPreamble();
+  return power_->leakageStateDuty(inst, leak);
+}
+
+PwrInternalRowStateSeq
+Sta::internalPowerRowStates(const Instance *inst,
+                            const Corner *corner)
+{
+  powerPreamble();
+  return power_->internalPowerRowStates(inst, corner);
+}
+
 PwrActivity
 Sta::activityNoPreamble(const Pin *pin)
 {

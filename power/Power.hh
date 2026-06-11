@@ -103,6 +103,12 @@ public:
 		       float duty,
 		       PwrActivityOrigin origin);
   void unsetUserActivity(const Pin *pin);
+  float leakageStateDuty(const Instance *inst,
+                         LeakagePower *leak);
+  // Per internal_power row duty/activity terms, in
+  // LibertyCell::internalPowers() order (matches the master table export).
+  PwrInternalRowStateSeq internalPowerRowStates(const Instance *inst,
+                                                const Corner *corner);
   void reportActivityAnnotation(bool report_unannotated,
                                 bool report_annotated);
   float clockMinPeriod();

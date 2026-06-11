@@ -1252,6 +1252,12 @@ public:
   PowerResult power(const Instance *inst,
                     const Corner *corner);
   PwrActivity activity(const Pin *pin);
+  float leakageStateDuty(const Instance *inst,
+                         LeakagePower *leak);
+  // Per internal_power row duty/activity terms of inst's liberty cell,
+  // in LibertyCell::internalPowers() order.
+  PwrInternalRowStateSeq internalPowerRowStates(const Instance *inst,
+                                                const Corner *corner);
   // Return pin activity without calling powerPreamble().
   // Caller is responsible for preamble/warmup sequencing.
   PwrActivity activityNoPreamble(const Pin *pin);

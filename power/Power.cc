@@ -79,7 +79,7 @@ using std::map;
 
 static bool
 isPositiveUnate(const LibertyCell *cell,
-		const LibertyPort *from,
+			const LibertyPort *from,
 		const LibertyPort *to);
 
 static EnumNameMap<PwrActivityOrigin> pwr_activity_origin_map =
@@ -612,7 +612,6 @@ Power::evalActivity(FuncExpr *expr,
     DdNode *bdd = bdd_.funcBdd(expr);
     float duty = evalBddDuty(bdd, inst);
     float density = evalBddActivity(bdd, inst);
-
     Cudd_RecursiveDeref(bdd_.cuddMgr(), bdd);
     bdd_.clearVarMap();
     return PwrActivity(density, duty, PwrActivityOrigin::propagated);
@@ -748,9 +747,9 @@ Power::ensureActivities()
                    pass, visitor.maxChange());
         pass++;
       }
-    }
-    activities_valid_ = true;
-  }
+	    }
+	    activities_valid_ = true;
+	  }
   stats.report("Power activities");
 }
 
@@ -1330,6 +1329,96 @@ Power::findLeakagePower(const Instance *inst,
              cell->name(),
              leakage);
   result.incrLeakage(leakage);
+}
+
+float
+Power::leakageStateDuty(const Instance *inst,
+                        LeakagePower *leak)
+{
+  ensureActivities();
+  if (inst == nullptr || leak == nullptr) {
+    return 0.0f;
+  }
+  FuncExpr *when = leak->when();
+  if (when == nullptr) {
+    return 1.0f;
+  }
+  return evalActivity(when, inst).duty();
+}
+
+PwrInternalRowStateSeq
+Power::internalPowerRowStates(const Instance *inst,
+                              const Corner *corner)
+{
+  PwrInternalRowStateSeq states;
+  if (inst == nullptr || corner == nullptr) {
+    return states;
+  }
+  ensureActivities();
+  LibertyCell *cell = network_->libertyCell(inst);
+  if (cell == nullptr) {
+    return states;
+  }
+  LibertyCell *corner_cell = cell->cornerCell(corner, MinMax::max());
+  if (corner_cell == nullptr) {
+    return states;
+  }
+
+  for (InternalPower *pwr : corner_cell->internalPowers()) {
+    if (pwr == nullptr) {
+      continue;
+    }
+    PwrInternalRowState state;
+    FuncExpr *when = pwr->when();
+    state.when_exists = when != nullptr;
+    if (state.when_exists) {
+      state.when = when->to_string();
+    }
+
+    const LibertyPort *to_corner_port = pwr->port();
+    LibertyPort *to_port = to_corner_port
+      ? findLinkPort(cell, to_corner_port)
+      : nullptr;
+    const Pin *to_pin = to_port ? network_->findPin(inst, to_port) : nullptr;
+    if (to_pin) {
+      state.to_density = findActivity(to_pin).density();
+    }
+
+    const LibertyPort *from_corner_port = pwr->relatedPort();
+    const Pin *from_pin = from_corner_port
+      ? findLinkPin(inst, from_corner_port)
+      : nullptr;
+    if (from_pin) {
+      state.from_density = findActivity(from_pin).density();
+    }
+
+    if (to_port && to_port->direction()->isAnyOutput()) {
+      // Mirrors the row duty of findOutputInternalPower.
+      state.duty = findInputDuty(inst, to_port->function(), pwr);
+    }
+    else {
+      // Mirrors the row duty of findInputInternalPower.
+      float duty = 1.0; // fallback default
+      if (when) {
+        const LibertyPort *out_corner_port = findExprOutPort(when);
+        if (out_corner_port) {
+          LibertyPort *out_port = findLinkPort(cell, out_corner_port);
+          if (out_port) {
+            FuncExpr *func = out_port->function();
+            if (func && to_port && func->hasPort(to_port))
+              duty = evalDiffDuty(func, to_port, inst);
+            else
+              duty = evalActivity(when, inst).duty();
+          }
+        }
+        else
+          duty = evalActivity(when, inst).duty();
+      }
+      state.duty = duty;
+    }
+    states.push_back(std::move(state));
+  }
+  return states;
 }
 
 // External.
