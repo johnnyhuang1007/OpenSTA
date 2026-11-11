@@ -6205,6 +6205,14 @@ Sta::leakageStateDuty(const Instance *inst,
   return power_->leakageStateDuty(inst, leak, scene);
 }
 
+PwrInternalRowStateSeq
+Sta::internalPowerRowStates(const Instance *inst,
+                            const Scene *scene)
+{
+  powerPreamble(scene);
+  return power_->internalPowerRowStates(inst, scene);
+}
+
 ////////////////////////////////////////////////////////////////
 
 void

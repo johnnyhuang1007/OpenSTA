@@ -131,6 +131,10 @@ public:
   float leakageStateDuty(const Instance *inst,
                          const LeakagePower *leak,
                          const Scene *scene);
+  // Per internal_power row duty/activity terms of inst's liberty cell,
+  // in LibertyCell::internalPowers() order.
+  PwrInternalRowStateSeq internalPowerRowStates(const Instance *inst,
+                                                const Scene *scene);
   void reportActivityAnnotation(bool report_unannotated,
                                 bool report_annotated);
   float clockMinPeriod(const Sdc *sdc);

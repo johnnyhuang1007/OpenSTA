@@ -1589,6 +1589,68 @@ Power::leakageStateDuty(const Instance *inst,
   return evalActivity(when, inst).duty();
 }
 
+PwrInternalRowStateSeq
+Power::internalPowerRowStates(const Instance *inst,
+                              const Scene *scene)
+{
+  PwrInternalRowStateSeq states;
+  LibertyCell *cell = network_->libertyCell(inst);
+  if (cell == nullptr)
+    return states;
+  ensureActivities(scene);
+  LibertyCell *scene_cell = cell->sceneCell(scene, MinMax::max());
+  if (scene_cell == nullptr)
+    return states;
+  for (const InternalPower &pwr : scene_cell->internalPowers()) {
+    PwrInternalRowState state;
+    FuncExpr *when = pwr.when();
+    state.when_exists = when != nullptr;
+    if (when)
+      state.when = when->to_string();
+
+    const LibertyPort *to_scene_port = pwr.port();
+    LibertyPort *to_port = to_scene_port
+      ? findLinkPort(cell, to_scene_port)
+      : nullptr;
+    const Pin *to_pin = to_port ? network_->findPin(inst, to_port) : nullptr;
+    if (to_pin)
+      state.to_density = findActivity(to_pin).density();
+
+    const LibertyPort *from_scene_port = pwr.relatedPort();
+    const Pin *from_pin = from_scene_port
+      ? findLinkPin(inst, from_scene_port)
+      : nullptr;
+    if (from_pin)
+      state.from_density = findActivity(from_pin).density();
+
+    if (to_port && to_port->direction()->isAnyOutput())
+      // Mirrors the row duty of findOutputInternalPower.
+      state.duty = findInputDuty(inst, to_port->function(), &pwr);
+    else {
+      // Mirrors the row duty of findInputInternalPower.
+      float duty = 1.0;
+      if (when) {
+        const LibertyPort *out_scene_port = findExprOutPort(when);
+        if (out_scene_port) {
+          LibertyPort *out_port = findLinkPort(cell, out_scene_port);
+          if (out_port) {
+            FuncExpr *func = out_port->function();
+            if (func && to_port && func->hasPort(to_port))
+              duty = evalDiffDuty(func, to_port, inst);
+            else
+              duty = evalActivity(when, inst).duty();
+          }
+        }
+        else
+          duty = evalActivity(when, inst).duty();
+      }
+      state.duty = duty;
+    }
+    states.push_back(std::move(state));
+  }
+  return states;
+}
+
 // External.
 PwrActivity
 Power::pinActivity(const Pin *pin,
