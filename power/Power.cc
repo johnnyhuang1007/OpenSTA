@@ -1577,6 +1577,18 @@ Power::findLeakagePower(const Instance *inst,
     result.incrLeakage(cell_leakage);
 }
 
+float
+Power::leakageStateDuty(const Instance *inst,
+                        const LeakagePower *leak,
+                        const Scene *scene)
+{
+  ensureActivities(scene);
+  FuncExpr *when = leak->when();
+  if (when == nullptr)
+    return 1.0;
+  return evalActivity(when, inst).duty();
+}
+
 // External.
 PwrActivity
 Power::pinActivity(const Pin *pin,

@@ -1462,6 +1462,10 @@ public:
                     const Scene *scene);
   PwrActivity activity(const Pin *pin,
                        const Scene *scene);
+  // Duty of a leakage_power when condition on inst (1 if unconditional).
+  float leakageStateDuty(const Instance *inst,
+                         const LeakagePower *leak,
+                         const Scene *scene);
 
   void writeTimingModel(std::string_view lib_name,
                         std::string_view cell_name,

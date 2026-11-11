@@ -6196,6 +6196,15 @@ Sta::activity(const Pin *pin,
   return power_->pinActivity(pin, scene);
 }
 
+float
+Sta::leakageStateDuty(const Instance *inst,
+                      const LeakagePower *leak,
+                      const Scene *scene)
+{
+  powerPreamble(scene);
+  return power_->leakageStateDuty(inst, leak, scene);
+}
+
 ////////////////////////////////////////////////////////////////
 
 void

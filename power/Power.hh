@@ -127,6 +127,10 @@ public:
 		       float duty,
 		       PwrActivityOrigin origin);
   void unsetUserActivity(const Pin *pin);
+  // Duty of a leakage_power when condition on inst (1 if unconditional).
+  float leakageStateDuty(const Instance *inst,
+                         const LeakagePower *leak,
+                         const Scene *scene);
   void reportActivityAnnotation(bool report_unannotated,
                                 bool report_annotated);
   float clockMinPeriod(const Sdc *sdc);
