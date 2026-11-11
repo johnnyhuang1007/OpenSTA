@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -74,6 +75,21 @@ private:
 
   static constexpr float min_density = 1E-10;
 };
+
+// One internal_power row of an instance's liberty cell, in
+// LibertyCell::internalPowers() order, with the duty/activity terms the
+// power engine uses in findInputInternalPower/findOutputInternalPower.
+class PwrInternalRowState
+{
+public:
+  std::string when;
+  bool when_exists = false;
+  float duty = 0.0;          // when/diff duty for this row
+  float from_density = 0.0;  // related-pin toggle density (0 if no related pin)
+  float to_density = 0.0;    // row pin toggle density
+};
+
+using PwrInternalRowStateSeq = std::vector<PwrInternalRowState>;
 
 class PowerResult
 {
